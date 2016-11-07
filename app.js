@@ -64,5 +64,5 @@ let shutdown = function() {
     process.on(e, shutdown);
 });
 
-//run every sec
-setInterval(run, 1000);
+//run every 5 sec
+setInterval(run, 5000);
