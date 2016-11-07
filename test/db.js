@@ -31,15 +31,17 @@ describe('DB', function() {
 
     describe('close', function() {
 
-        before(function() {
+        before(function(done) {
             const DB_URI = "mongodb://localhost:" + [config.DB_PORT, config.DB_NAME].join("/");
-            DB.init(DB_URI);
+            DB.init(DB_URI).then(function(db) {
+                done();
+            });
         });
 
         it('closes the db', function() {
             let db = DB.getDB(),
                 adminDb = db.admin();
-
+            
             DB.close();
 
             adminDb.serverStatus(function(err, info) {
@@ -51,14 +53,17 @@ describe('DB', function() {
 
     describe('DB getter/setters', function() {
 
-        before(function() {
+        before(function(done) {
             const DB_URI = "mongodb://localhost:" + [config.DB_PORT, config.DB_NAME].join("/");
-            DB.init(DB_URI);
+            DB.init(DB_URI).then(function(db) {
+                done();
+            });
         });
 
         describe('getDB', function() {
 
             it('returns a connected db instance', function() {
+
                 let db = DB.getDB(),
                     adminDb = db.admin();
 
