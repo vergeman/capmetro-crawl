@@ -4,10 +4,15 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "NODE_PATH=. node app.js",
-    "test": "NODE_ENV=test NODE_PATH=. mocha",
-    "coverage": "NODE_ENV=test NODE_PATH=. ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha test/*.js -- -t 5000",
-    "jshint" : "NODE_PATH=. jshint *.js"
+    "start":	"NODE_PATH=. NODE_ENV=dev node app.js",
+    "test":	"NODE_ENV=test NODE_PATH=. mocha",
+      
+    "prod":	"NODE_PATH=. pm2 start ecosystem.config.js --env production",
+    "stop":	"NODE_PATH=. pm2 stop app.js",
+    "monit":	"NODE_PATH=. pm2 monit",
+
+    "coverage":	"NODE_ENV=test NODE_PATH=. ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha test/*.js -- -t 5000",
+    "jshint":	"NODE_PATH=. jshint *.js"
   },
   "author": "Alan Verga",
   "license": "ISC",
