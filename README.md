@@ -8,7 +8,10 @@ A simple nodeJS experiment to collect capmetro vehicle data.
 * on new uuid, follows the 302 redirect and downloads the data into a mongoDB 'vehicle_positions' collection
 
 ##Basic Commands
-* `npm start`: starts a five-sec loop
+* `npm run prod`: executes via pm2 prod env crawl
+* `npm stop`: stops pm2 prod env crawl
+* `npm run monit`: enters pm2 monitor mode
+* `npm start`: starts a five-sec loop (dev env crawl)
 * `npm test`: executes tests
 * `npm run coverage`: runs code coverage
 

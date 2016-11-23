@@ -22,7 +22,30 @@ describe('DB', function() {
             const DB_URI = "mongodb://localhost:" + [9999, config.DB_NAME].join("/");
 
             DB.init(DB_URI).catch(function(err) {
-                assert.equal(err.name, 'MongoError');
+                assert.equal(Object.keys(err).length > 1, true);
+                done();
+            });
+        });
+    });
+
+    describe('buildIndex', function() {
+
+        before(function(done) {
+            const DB_URI = "mongodb://localhost:" + [config.DB_PORT, config.DB_NAME].join("/");
+
+            //connect & drop all indices
+            DB.init(DB_URI).then(function(db) {
+                db.collection('vehicle_positions').dropAllIndexes(function() {
+                    done();
+                });
+            });
+        });
+
+
+        it('should succesfully create a headerID_1 index if it does not exist', function(done) {
+
+            DB.buildIndex('headerID', 'vehicle_positions').then(function(result) {
+                assert.equal(result, "headerID_1");
                 done();
             });
         });
@@ -45,7 +68,7 @@ describe('DB', function() {
             DB.close();
 
             adminDb.serverStatus(function(err, info) {
-                assert(info, null);
+                assert.equal(info, null);
             });
         });
     });
@@ -70,7 +93,7 @@ describe('DB', function() {
                 assert.equal(db.databaseName, DB_NAME);
 
                 adminDb.serverStatus(function(err, info) {
-                    assert(info.connections.current > 1, true);
+                    assert.equal(info.connections.current > 1, true);
                 });
             });
         });
@@ -99,7 +122,7 @@ describe('DB', function() {
                     });
                 }).then(function(orig_count) {
                     db.collection('vehicle_positions').count().then(function(count) {
-                        assert(count == orig_count + 1, true);
+                        assert.equal(count == orig_count + 1, true);
                         done();
                     });
                 });
@@ -121,7 +144,7 @@ describe('DB', function() {
                     });
                 }).then(function(orig_count) {
                     db.collection('vehicle_positions').count().then(function(count) {
-                        assert(count == orig_count, true);
+                        assert.equal(count == orig_count, true);
                         done();
                     });
                 });
@@ -140,8 +163,8 @@ describe('DB', function() {
                 let headerID = 123;
 
                 DB.findHeaderID('vehicle_positions', headerID).then(function(result) {
-                    assert(headerID === result.headerID, true);
-                    assert(result.doc.length === 0, true);
+                    assert.equal(headerID === result.headerID, true);
+                    assert.equal(result.doc.length === 0, true);
                     done();
                 });
             });
@@ -160,8 +183,8 @@ describe('DB', function() {
                 DB.insertDocuments(document).then(function(doc) {
                     return DB.findHeaderID('vehicle_positions', headerID);
                 }).then(function(result) {
-                    assert(headerID === result.headerID, true);
-                    assert(result.doc.length > 0, true);
+                    assert.equal(headerID === result.headerID, true);
+                    assert.equal(result.doc.length > 0, true);
                     done();
                 });
 
@@ -171,7 +194,7 @@ describe('DB', function() {
             it('should catch a lookup error', function(done) {
                 DB.close();
                 DB.findHeaderID('vehicle_positions', "alphabet").catch(function(err) {
-                    assert(Object.keys(err).length > 1, true);
+                    assert.equal(Object.keys(err).length > 1, true);
                     done();
                 });
             });

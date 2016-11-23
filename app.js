@@ -10,8 +10,10 @@ const Request = require('./lib/requests.js');
 const URL = 'https://data.texas.gov/download/cuc7-ywmd/text%2Fplain;';
 const DB_URI = "mongodb://localhost:" + [config.DB_PORT, config.DB_NAME].join("/");
 
-let db = DB.init(DB_URI).catch(function(err) {
-    logger.log('error', "exiting - could not connect to db");
+let db = DB.init(DB_URI).then(function(db) {
+    return DB.buildIndex('headerID', 'vehicle_positions');
+}).catch(function(err) {
+    logger.log('error', "exiting - could not required init db");
     process.exit(1);
 });
 

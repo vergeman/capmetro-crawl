@@ -4,15 +4,13 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start":	"NODE_PATH=. NODE_ENV=dev node app.js",
-    "test":	"NODE_ENV=test NODE_PATH=. mocha",
-      
-    "prod":	"NODE_PATH=. pm2 start ecosystem.config.js --env production",
-    "stop":	"NODE_PATH=. pm2 stop app.js",
-    "monit":	"NODE_PATH=. pm2 monit",
-
-    "coverage":	"NODE_ENV=test NODE_PATH=. ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha test/*.js -- -t 5000",
-    "jshint":	"NODE_PATH=. jshint *.js"
+    "start": "NODE_PATH=. NODE_ENV=dev node app.js",
+    "test": "NODE_ENV=test NODE_PATH=. mocha",
+    "prod": "NODE_PATH=. pm2 start ecosystem.config.js --env production",
+    "stop": "NODE_PATH=. pm2 stop app.js",
+    "monit": "NODE_PATH=. pm2 monit",
+    "coverage": "NODE_ENV=test NODE_PATH=. ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha test/*.js -- -t 5000",
+    "jshint": "NODE_PATH=. jshint *.js"
   },
   "author": "Alan Verga",
   "license": "ISC",
@@ -20,6 +18,7 @@
     "http": "0.0.0",
     "mongodb": "^2.2.11",
     "mongojs": "^2.4.0",
+    "pm2": "^2.1.5",
     "promise": "^7.1.1",
     "request": "^2.76.0",
     "winston": "^2.3.0"
