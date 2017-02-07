@@ -8,8 +8,9 @@ describe('requests', function() {
         it('makes a request that succesfully returns a parsed unique uuid', function(done) {
 
             const URL = 'https://data.texas.gov/download/cuc7-ywmd/text%2Fplain;';
+            const collection_name = "vehicle_positions";
 
-            Request.getHeader(URL).then(function(uuid) {
+            Request.getHeader(collection_name, URL).then(function(uuid) {
                 assert(uuid.match(/([a-z0-9]+-){4}[a-z0-9]+/)[0], uuid);
                 done();
             });
@@ -18,8 +19,9 @@ describe('requests', function() {
         it('should have an error obj on a failed connect', function(done) {
 
             const URL = "https://data.1231231231231.com";
+            const collection_name = "vehicle_positions";
 
-            Request.getHeader(URL).catch(function(err) {
+            Request.getHeader(collection_name, URL).catch(function(err) {
                 assert(Object.keys(err.length > 0, true));
                 done();
             });
@@ -31,8 +33,9 @@ describe('requests', function() {
         it('makes a request that succesfully returns vehicle position information', function(done) {
 
             const URL = 'https://data.texas.gov/download/cuc7-ywmd/text%2Fplain;';
+            const collection_name = "vehicle_positions";
 
-            Request.getBody(URL).then(function(body) {
+            Request.getBody(collection_name, URL).then(function(body) {
 
                 assert(Number.isInteger(body.header.timestamp), true);
                 done();
@@ -42,8 +45,9 @@ describe('requests', function() {
         it('a failed connect is handled', function(done) {
 
             const URL = 'https://123123123.xqweq/';
+            const collection_name = "vehicle_positions";
 
-            Request.getBody(URL).catch(function(err) {
+            Request.getBody(collection_name, URL).catch(function(err) {
                 assert(Object.keys(err.length > 0, true));
                 done();
             });

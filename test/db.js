@@ -5,6 +5,9 @@ const DB_NAME = config.DB_NAME;
 
 describe('DB', function() {
 
+    let collections = ['vehicle_positions',
+                       'trip_updates'];
+
     describe('init()', function() {
 
         it('should return succesfully connect to the intended ' + DB_NAME + ' database', function(done) {
@@ -35,19 +38,43 @@ describe('DB', function() {
 
             //connect & drop all indices
             DB.init(DB_URI).then(function(db) {
-                db.collection('vehicle_positions').dropAllIndexes(function() {
+
+                Promise.all(collections.map(function(collection) {
+
+                    return new Promise(function(resolve, reject) {
+
+                        //create collection
+                        db.createCollection(collection, function(err, collection) {
+
+                            //clean of indicies
+                            collection.dropAllIndexes(function(err, res) {
+
+                                if (err) { reject(err); }
+
+                                resolve(res);
+                            });
+                        });
+                    });
+
+                })).then(function() {
                     done();
-                });
+                });;
             });
         });
 
 
-        it('should succesfully create a headerID_1 index if it does not exist', function(done) {
+        it('should succesfully create a headerID_1 index in each collection', function(done) {
 
-            DB.buildIndex('headerID', 'vehicle_positions').then(function(result) {
-                assert.equal(result, "headerID_1");
-                done();
-            });
+            Promise
+                .all(collections.map(function(collection) {
+                    return DB.buildIndex('headerID', collection);
+                }))
+                .then(function(results) {
+                    results.forEach(function(result) {
+                        assert.equal(result, "headerID_1");
+                    });
+                    done();
+                });
         });
 
     });
@@ -101,12 +128,16 @@ describe('DB', function() {
 
         describe ('insertDocuments', function() {
 
+            let collection_name = "vehicle_positions";
+
             before(function() {
                 let db = DB.getDB();
-                db.collection('vehicle_positions').remove({});
+                collections.forEach(function(collection) {
+                    db.collection(collection).remove({});
+                });
             });
 
-            it('should add a new document to the database', function(done) {
+            it('should add a new document to the specified collection in the database', function(done) {
 
                 let db = DB.getDB(),
                     document = {
@@ -116,19 +147,19 @@ describe('DB', function() {
                         headerID: 123
                     };
 
-                db.collection('vehicle_positions').count().then(function(count) {
-                    return DB.insertDocuments(document).then(function() {
+                db.collection(collection_name).count().then(function(count) {
+                    return DB.insertDocuments(collection_name, document).then(function() {
                         return count;
                     });
                 }).then(function(orig_count) {
-                    db.collection('vehicle_positions').count().then(function(count) {
+                    db.collection(collection_name).count().then(function(count) {
                         assert.equal(count == orig_count + 1, true);
                         done();
                     });
                 });
             });
 
-            it('should not allow duplicates to be added to the db', function(done) {
+            it('should not allow duplicate documents to be added to the db', function(done) {
 
                 let db = DB.getDB(),
                     document = {
@@ -138,12 +169,12 @@ describe('DB', function() {
                         headerID: 123
                     };
 
-                db.collection('vehicle_positions').count().then(function(count) {
-                    return DB.insertDocuments(document).then(function() {
+                db.collection(collection_name).count().then(function(count) {
+                    return DB.insertDocuments(collection_name, document).then(function() {
                         return count;
                     });
                 }).then(function(orig_count) {
-                    db.collection('vehicle_positions').count().then(function(count) {
+                    db.collection(collection_name).count().then(function(count) {
                         assert.equal(count == orig_count, true);
                         done();
                     });
@@ -152,6 +183,8 @@ describe('DB', function() {
         });
 
         describe ('findHeaderID', function() {
+
+            let collection_name = "vehicle_positions";
 
             before(function() {
                 let db = DB.getDB();
@@ -162,7 +195,7 @@ describe('DB', function() {
                 let db = DB.getDB();
                 let headerID = 123;
 
-                DB.findHeaderID('vehicle_positions', headerID).then(function(result) {
+                DB.findHeaderID(collection_name, headerID).then(function(result) {
                     assert.equal(headerID === result.headerID, true);
                     assert.equal(result.doc.length === 0, true);
                     done();
@@ -180,8 +213,8 @@ describe('DB', function() {
                         headerID: headerID
                     };
 
-                DB.insertDocuments(document).then(function(doc) {
-                    return DB.findHeaderID('vehicle_positions', headerID);
+                DB.insertDocuments(collection_name, document).then(function(doc) {
+                    return DB.findHeaderID(collection_name, headerID);
                 }).then(function(result) {
                     assert.equal(headerID === result.headerID, true);
                     assert.equal(result.doc.length > 0, true);
@@ -193,7 +226,7 @@ describe('DB', function() {
 
             it('should catch a lookup error', function(done) {
                 DB.close();
-                DB.findHeaderID('vehicle_positions', "alphabet").catch(function(err) {
+                DB.findHeaderID(collection_name, "alphabet").catch(function(err) {
                     assert.equal(Object.keys(err).length > 1, true);
                     done();
                 });

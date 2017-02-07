@@ -6,25 +6,28 @@ const config = require('./.env.json')[process.env.NODE_ENV || 'dev'];
 const logger = require('./lib/logger.js');
 const DB = require('./lib/db.js');
 const Request = require('./lib/requests.js');
-
-const URL = 'https://data.texas.gov/download/cuc7-ywmd/text%2Fplain;';
 const DB_URI = "mongodb://localhost:" + [config.DB_PORT, config.DB_NAME].join("/");
 
+const VEHICLE_POSITIONS_URL = 'https://data.texas.gov/download/cuc7-ywmd/text%2Fplain';
+const TRIP_UPDATES_URL = 'https://data.texas.gov/download/mqtr-wwpy/text%2Fplain';
+
+
 let db = DB.init(DB_URI).then(function(db) {
-    return DB.buildIndex('headerID', 'vehicle_positions');
+    return Promise.all([DB.buildIndex('headerID', 'vehicle_positions'),
+                        DB.buildIndex('headerID', 'trip_updates')]);
 }).catch(function(err) {
     logger.log('error', "exiting - could not required init db");
     process.exit(1);
 });
 
 
-let run = function() {
+let run = function(collection_name, URL) {
 
     Promise
-        .all([db, Request.getHeader(URL)])
+        .all([db, Request.getHeader(collection_name, URL)])
         .then(function(vals) {
-            let headerID = vals[1],
-                collection_name = 'vehicle_positions';
+            let headerID = vals[1];
+
             return DB.findHeaderID(collection_name, headerID);
         })
         .then(function(document) {
@@ -32,7 +35,7 @@ let run = function() {
             // if there is no document, make full data request
             if (document.doc.length === 0) {
 
-                return Request.getBody(URL).then(function(body) {
+                return Request.getBody(collection_name, URL).then(function(body) {
 
                     let d = {
                         headerID: document.headerID,
@@ -40,11 +43,11 @@ let run = function() {
                     };
 
                     //insert into db
-                    return DB.insertDocuments(d);
+                    return DB.insertDocuments(collection_name, d);
                 });
 
             } else {
-                logger.log('info', "No new data");
+                logger.log('info', collection_name + ": No new data");
                 return Promise.resolve(false);
             }
         })
@@ -67,4 +70,7 @@ let shutdown = function() {
 });
 
 //run every 5 sec
-setInterval(run, 5000);
+setInterval(function() {
+    run("vehicle_positions", VEHICLE_POSITIONS_URL);
+    run("trip_updates", TRIP_UPDATES_URL);
+}, 5000);
